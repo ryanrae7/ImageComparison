@@ -101,7 +101,6 @@ def getImagesFolder(folder_path):
             images.append(os.path.join(folder_path, file_name))
 
     #test if it does create array and return
-    print (images)
     return images
 
 
@@ -123,7 +122,6 @@ def getImagesFolderInFolder(directory):
                 images.append(os.path.join(root, file_name))
                 namesFile.append(file_name)
 
-    print(images)
     return images
 
 
@@ -209,10 +207,6 @@ def main():
     #get images from folder
     images1 = getImagesFolderInFolder(filedirectory_1)
     images2 = getImagesFolderInFolder(filedirectory_2)
-
-
-    #initialize array to store percentages of difference
-    percentageArray = []
 
     #initialize list to store dictionary results for zone differences
     dictionaryZoneList = []
