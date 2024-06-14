@@ -161,6 +161,22 @@ def highlightDifference(image_1, image_2, opacity) -> Image:
     
 
 
+
+#method to calculate the difference between the first two photos
+def calcDiffPhoto(image_1,image_2) -> float:
+    #image to array using numpy
+    differenceInPhoto = ImageChops.difference(image_1, image_2)
+    diff_array = np.array(differenceInPhoto)
+
+    #find non-zero indexes of the array
+    non_zero = np.count_nonzero(diff_array)
+    total_arrays = diff_array.size
+
+    return (non_zero/total_arrays) * 100
+
+
+
+
 #save file method
 def saveFile(image, base_name, counter):
     #with any keyword of user name e.g. rgae and the downloads file, make the path there
@@ -178,15 +194,21 @@ def saveFile(image, base_name, counter):
     return f'{base_name}_{counter}.png'
 
 
+
+
 #possibly create a show image class to display the two initial pictures and the difference photo?
 def main():
+    #set up tkinter for gui and withdraw, only utilizing TK for the tools, not the display
+    root = tk.Tk()
+    root.withdraw()
+
     #get images from folder
     images1 = getImagesFolderInFolder("C:/Users/rgae/Downloads/D58850_4.02.05 - Copy")
     images2 = getImagesFolderInFolder("C:/Users/rgae/Downloads/D58850_4.02.05")
 
 
     #initialize array to store percentages of difference
-    #percentageArray = []
+    percentageArray = []
 
     #initialize list to store dictionary results for zone differences
     dictionaryZoneList = []
