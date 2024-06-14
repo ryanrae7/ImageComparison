@@ -44,10 +44,10 @@ def extractROICalculations(image_1, image_2, zones):
         roi_difference = np.abs(roi_2 - roi_1)
         
         #sum the differences across all channels of RGB
+        #allows for us to take on RGB values rather than use .convert('L') to bypass the steps that we want
         channel_difference_sum = np.sum(roi_difference, axis=-1)
         
         #calculate non-zero differences
-        #allows for us to take on RGB values rather than use .convert('L') to bypass the steps that we want
         non_zero = np.count_nonzero(channel_difference_sum)
 
         #calculate the area of the zone and find the percentage
