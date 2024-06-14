@@ -202,9 +202,13 @@ def main():
     root = tk.Tk()
     root.withdraw()
 
+    #get file directory
+    filedirectory_1 = filedialog.askdirectory()
+    filedirectory_2 = filedialog.askdirectory()
+
     #get images from folder
-    images1 = getImagesFolderInFolder("C:/Users/rgae/Downloads/D58850_4.02.05 - Copy")
-    images2 = getImagesFolderInFolder("C:/Users/rgae/Downloads/D58850_4.02.05")
+    images1 = getImagesFolderInFolder(filedirectory_1)
+    images2 = getImagesFolderInFolder(filedirectory_2)
 
 
     #initialize array to store percentages of difference
