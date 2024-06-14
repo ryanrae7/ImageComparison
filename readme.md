@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Automatic Image Difference Comparison Tool
 
 ## How to Run
