@@ -95,7 +95,6 @@ def getImagesFolder(folder_path):
 
         if file_name.endswith(('.png', '.jpg', '.jpeg')):
             images.append(os.path.join(folder_path, file_name))
-        
         #case for capital
         elif file_name.endswith(('.PNG', '.JPG', '.JPEG')):
             images.append(os.path.join(folder_path, file_name))
@@ -103,26 +102,6 @@ def getImagesFolder(folder_path):
     #test if it does create array and return
     return images
 
-
-
-
-#for the use case for when iterating through not only files but subdirectories
-def getImagesFolderInFolder(directory):
-    images = []
-    namesFile = []
-    #utilize walk from root to dir to files
-    for root, dirs, files in os.walk(directory):
-
-        #for each files that ends with .png .jpg and .jpeg, append to the initialized array above
-        for file_name in files:
-            if file_name.endswith(('.png', '.jpg', '.jpeg')):
-                images.append(os.path.join(root, file_name))
-                namesFile.append(file_name)
-            elif file_name.endswith(('.PNG', '.JPG', '.JPEG')):
-                images.append(os.path.join(root, file_name))
-                namesFile.append(file_name)
-
-    return images
 
 
 
@@ -192,6 +171,20 @@ def saveFile(image, base_name, counter):
     return f'{base_name}_{counter}.png'
 
 
+#for the use case for when iterating through not only files but subdirectories
+def getImagesFolderInFolder(directory):
+    images = []
+
+    #utilize walk from root to dir to files
+    for root, dirs, files in os.walk(directory):
+
+        #for each files that ends with .png .jpg and .jpeg, append to the initialized array above
+        for file_name in files:
+            if file_name.lower().endswith(('.png', '.jpg', '.jpeg')):
+                images.append(os.path.join(root, file_name))
+
+    return images
+
 
 
 #possibly create a show image class to display the two initial pictures and the difference photo?
@@ -201,21 +194,17 @@ def main():
     root.withdraw()
 
     #get file directory
-    filedirectory_1 = filedialog.askdirectory()
-    filedirectory_2 = filedialog.askdirectory()
+    filedirectory_1 = "C:/Users/rgae/Downloads/D58850_4.02.05"
+    filedirectory_2 = "C:/Users/rgae/Downloads/D58850_4.02.05 - Copy"
 
     #get images from folder
     images1 = getImagesFolderInFolder(filedirectory_1)
     images2 = getImagesFolderInFolder(filedirectory_2)
 
-    #initialize list to store dictionary results for zone differences
+    #initialize list to store dictionary results for zone differences, filename, and output of the photos
     dictionaryZoneList = []
-
-    #initialize filename
     fileName_1 = []
     fileName_2 = []
-
-    #initialize name for the output of photo
     outputPhoto = []
 
     #loop the length of the smallest array (to ensure that the lists are comparable)
@@ -238,6 +227,8 @@ def main():
         #Append the fileName into the two arrays listed above
         fileName_1.append(os.path.basename(images1[i]))
         fileName_2.append(os.path.basename(images2[i]))
+
+        print(i)
 
 
     #Create the necessary DataFrame here
