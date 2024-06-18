@@ -2,13 +2,12 @@ from PIL import Image, ImageChops, ImageTk, ImageEnhance, ImageFilter
 import numpy as np
 import tkinter as tk
 from tkinter import filedialog
-import decimal
 import pandas as pd
-import math
 import os
 import cv2
-import pathlib
+from pathlib import Path
 import matplotlib.pyplot as plt
+
 
 #first create a dictionary table
 zones = {
@@ -172,34 +171,120 @@ def saveFile(image, base_name, counter):
 
 
 #for the use case for when iterating through not only files but subdirectories
-def getImagesFolderInFolder(directory):
-    images = []
-
+#def getImagesFolderInFolder(directory_1):
+    #images_1 = []
+    #directories = []
     #utilize walk from root to dir to files
-    for root, dirs, files in os.walk(directory):
-
+    #for root_1, dirs_1, files_1 in os.walk(directory_1):
+        #iterate through any folders
+            #for dirs in dirs_1:
+                #directories.append(dirs)
+                #for file_name_1 in files_1:
+                    #if file_name_1.lower().endswith(('.png', '.jpg', '.jpeg')):
+                        #images_1.append(os.path.join(root_1, file_name_1))
         #for each files that ends with .png .jpg and .jpeg, append to the initialized array above
-        for file_name in files:
-            if file_name.lower().endswith(('.png', '.jpg', '.jpeg')):
-                images.append(os.path.join(root, file_name))
 
+    #print(directories)
+    #print(images_1)
+    #return images_1
+
+#simple iteration to get all images from a given directory
+def getImages(directory):
+    images = []
+    #Utilize walk from root to dir to files
+    for root, _, files in os.walk(directory):
+        #For each file that ends with .png, .jpg, and .jpeg, append to the initialized array above
+        for file_name in files:
+            #consider for the upper case .png vs .PNG
+            if file_name.lower().endswith(('.png', '.jpg', '.jpeg')):
+
+                #append the values with its root i.e. whole path file to the list above and return
+                images.append(os.path.join(root, file_name))
     return images
+
+def getImagesFromFolders(directory_1, directory_2):
+    #create lists to hold all images from both directories
+    all_images_1 = getImages(directory_1)
+    all_images_2 = getImages(directory_2)
+
+    #create dictionaries to hold images by subdirectory
+    #The idea is to have dictionary with definitions being SUBDIRECTORIES and the keys being the image path
+    images_by_dir_1 = {}
+    images_by_dir_2 = {}
+
+    #fill the dictionaries with images, categorized by subdirectory 
+    for image in all_images_1:
+        #https://www.geeksforgeeks.org/python-os-path-relpath-method/ <-- find relay path of the directory name of the image
+        subdir = os.path.relpath(os.path.dirname(image), directory_1)
+        if subdir not in images_by_dir_1:
+            #if subdirectory does not exist, add to the dictionary with blank keys
+            images_by_dir_1[subdir] = []
+            #add the images back 
+        images_by_dir_1[subdir].append(image)
+    #print(images_by_dir_1)    
+
+    #do the same for the second directory   
+    for image in all_images_2:
+        subdir = os.path.relpath(os.path.dirname(image), directory_2)
+        if subdir not in images_by_dir_2:
+            images_by_dir_2[subdir] = []
+        images_by_dir_2[subdir].append(image)
+
+    #instantalize list to contain matched items
+    matched_images_1 = []
+    matched_images_2 = []
+    unmatched_1 = []
+    unmatched_2 = []
+
+    #Iterate through the subdirectories and find common ones and exclude the ones that aren't in common. probably add it back later?
+    common_subdirs = set(images_by_dir_1.keys()).intersection(images_by_dir_2.keys())
+    different_subdirs = set(images_by_dir_1.keys()).symmetric_difference(images_by_dir_2.keys())
+
+    print(f"Directory {different_subdirs} is/are not matched.")
+
+    #Iterate through common subdirectories and match images
+    for subdir in common_subdirs:
+        images_1 = images_by_dir_1[subdir]
+        images_2 = images_by_dir_2[subdir]
+        matched_images_1.extend(images_1[:len(images_1)])
+        matched_images_2.extend(images_2[:len(images_2)])
+
+        #Confirmation for whether they have equal lengths or not
+        if len(matched_images_1) == len(matched_images_2):
+            print(f"Directory {subdir} is equal.")
+        else:
+            print(f"Directory {subdir} is not equal. Length of folder 1 is {len(matched_images_1)} and length of folder 2 is {len(matched_images_2)}.")
+    #
+    #possibly insert value into i index if not equal? check if its greater less or equal to in length first
+    for i in range(max(len(matched_images_1), len(matched_images_2))):
+        #check if equal lengths
+        if len(matched_images_1) > len(matched_images_2):
+            if(matched_images_1[i] == matched_images_2[i]):
+                i = i + 1
+            else:
+                matched_images_2.insert(i, "MISSING")
+        elif len(matched_images_1) < len(matched_images_2):
+            if(matched_images_1[i] == matched_images_2[i]):
+                i = i + 1
+            else:
+                matched_images_1.insert(i, "MISSING")
+        else:
+            i = i + 1
+        
+
+    return matched_images_1, matched_images_2
 
 
 
 #possibly create a show image class to display the two initial pictures and the difference photo?
 def main():
-    #set up tkinter for gui and withdraw, only utilizing TK for the tools, not the display
-    root = tk.Tk()
-    root.withdraw()
-
     #get file directory
-    filedirectory_1 = "C:/Users/rgae/Downloads/D58850_4.02.05"
-    filedirectory_2 = "C:/Users/rgae/Downloads/D58850_4.02.05 - Copy"
+    directory_1 = "C:/Users/rgae/Downloads/D58850_4.02.05"
+    directory_2 = "C:/Users/rgae/Downloads/D58850_4.02.05 - Copy"
 
     #get images from folder
-    images1 = getImagesFolderInFolder(filedirectory_1)
-    images2 = getImagesFolderInFolder(filedirectory_2)
+    images1, images2 = getImagesFromFolders(directory_1, directory_2)
+ 
 
     #initialize list to store dictionary results for zone differences, filename, and output of the photos
     dictionaryZoneList = []
@@ -207,49 +292,81 @@ def main():
     fileName_2 = []
     outputPhoto = []
 
-    #loop the length of the smallest array (to ensure that the lists are comparable)
-    for i in range(min(len(images1), len(images2))):
-        # convert into RGBA for alpha
-        img1 = Image.open(images1[i]).convert('RGBA')
-        img2 = Image.open(images2[i]).convert('RGBA')
+    #loop the length of the smallest array (to ensure that the lists are comparable) - do this for each subfolder
+    for i in range(max(len(images1), len(images2))):
+        if i < len(images1):
+            img1_path = Path(images1[i])
+        else:
+            img1_path = Path("MISSING")
+        if i < len(images2):
+            img2_path = Path(images2[i])
+        else:
+            img2_path = Path("MISSING")
+
+        #Check if files exist
+        if not img1_path.exists() or not img2_path.exists():
+            print(f"File {img1_path} or {img2_path} does not exist. Skipping...")
+            continue
+
+        # Open images and convert to RGBA
+        try:
+            if img1_path != Path("MISSING"):
+                img1 = Image.open(img1_path).convert('RGBA')
+            else:
+                img1 = Image.new('RGBA', (1024, 768), (255, 255, 255))
+            if img2_path != Path("MISSING"):
+                img2 = Image.open(img2_path).convert('RGBA')
+            else:
+                img2 = Image.new('RGBA', (1024, 768), (255, 255, 255))
+        except Exception as e:
+            print(f"Error opening or converting image: {e}")
+            continue
 
         #call displayPhotos function
         difference_test = highlightDifference(img1, img2, 1)
 
-        #save the file in the downloads directory with changing names i + 1 and append the output image name to array
-        saveFile(difference_test, 'difference_name', i + 1)
-        outputPhoto.append(saveFile(difference_test, 'difference_name', i + 1))
+        #Save output image
+        output_file = saveFile(difference_test, 'difference_name', i + 1)
+        outputPhoto.append(output_file)
+    
 
         #calculate the difference in the zones and append new dictionary to the list
         difference_zone = extractROICalculations(img1, img2, zones)
         dictionaryZoneList.append(difference_zone)
+    
+        #MISSING
+        fileName_Missing = []
+        fileName_Missing.append(fileName_1)
 
         #Append the fileName into the two arrays listed above
-        fileName_1.append(os.path.basename(images1[i]))
-        fileName_2.append(os.path.basename(images2[i]))
+        basename_1 = os.path.basename(str(img1_path))
+        basename_2 = os.path.basename(str(img2_path))
+
+        root_1 = os.path.basename(os.path.dirname(str(img1_path)))
+        root_2 = os.path.basename(os.path.dirname(str(img2_path)))
+
+        fileName_1.append(os.path.join(root_1, basename_1))
+        fileName_2.append(os.path.join(root_2, basename_2))
+
+
 
         print(i)
 
 
     #Create the necessary DataFrame here
     df_zone = pd.DataFrame(dictionaryZoneList).astype(float)
+    df_missing = pd.DataFrame(fileName_Missing, columns =['Missing'])
     df_fileName_1 = pd.DataFrame(fileName_1, columns=['File_Name_1'])
     df_fileName_2 = pd.DataFrame(fileName_2, columns=['File_Name_2'])
     df_outputFile = pd.DataFrame(outputPhoto, columns=['Output File'])
 
     #create final dataFrame
-    final_df = pd.concat([df_fileName_1, df_fileName_2, df_zone, df_outputFile], axis=1)
+    final_df = pd.concat([df_zone, df_outputFile, df_fileName_1, df_fileName_2, df_missing], axis=1)
 
     final_df.index = final_df.index + 1 #set index + 1 to match the excel spreadsheet w/ headers
     final_df.to_excel('Zone.xlsx', header=True, index=True)
 
     #draw the new boxes
-    example_image = Image.open(images1[0]).convert('RGB')
-    #call the zone method
-    visual_zone = zoneVisual(example_image, zones)
-    visual_zone.save('example zone.png')
-
-    print("Done Processing")
 
 
 if __name__ == '__main__':
