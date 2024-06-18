@@ -84,27 +84,6 @@ def zoneVisual(image, zones):
 
 
 
-#create function that takes a folder, passes all paths to a list (for one folder with images, can call this within getImagesFolderInFolder)
-def getImagesFolder(folder_path):
-    #initialize images array
-    images = []
-
-    #given a folder path loop through all the contents ending with .png/.PNG ... and append that path to the array
-    for file_name in os.listdir(folder_path):
-
-        if file_name.endswith(('.png', '.jpg', '.jpeg')):
-            images.append(os.path.join(folder_path, file_name))
-        #case for capital
-        elif file_name.endswith(('.PNG', '.JPG', '.JPEG')):
-            images.append(os.path.join(folder_path, file_name))
-
-    #test if it does create array and return
-    return images
-
-
-
-
-
 def highlightDifference(image_1, image_2, opacity) -> Image:
     #format images to take in Alpha channel 
     image_1 = image_1.convert('RGBA')
@@ -244,9 +223,6 @@ def getImagesFromFolders(directory_1, directory_2):
         temp_1 = images_by_dir_1[subdir]
         temp_2 = images_by_dir_2[subdir]
 
-        print(temp_2)
-        print(f"Processing subdir '{subdir}' with {len(temp_1)} and {len(temp_2)} images respectively.")
-
         #initialize counting variables
         i, j = 0, 0
 
@@ -340,28 +316,28 @@ def main():
             #Insert FileName if equals path
             fileName_1.append(os.path.join(os.path.basename(os.path.dirname(str(img1_path))), os.path.basename(str(img1_path))))
         elif img1_path == Path("MISSING"):
-            img1 = Image.new('RGBA', (1024, 768), (255, 255, 255))
+            img1 = Image.new('RGBA', (1024, 768), (255,255,255))
             fileName_1.append("MISSING")
         if img2_path != Path("MISSING"):
             img2 = Image.open(img2_path).convert('RGBA')
             #Insert filename if equals path for fileName_2
             fileName_2.append(os.path.join(os.path.basename(os.path.dirname(str(img2_path))), os.path.basename(str(img2_path))))
-
         elif img2_path == Path("MISSING"):
-            img2 = Image.new('RGBA', (1024, 768), (255, 255, 255))
+            img2 = Image.new('RGBA', (1024, 768), (255,255,255))
             fileName_2.append("MISSING")
 
         #call displayPhotos function
         difference_test = highlightDifference(img1, img2, 1)
 
-        #Save output image
-        output_file = saveFile(difference_test, 'difference_name', i + 1)
-        outputPhoto.append(output_file)
-    
-
         #calculate the difference in the zones and append new dictionary to the list
         difference_zone = extractROICalculations(img1, img2, zones)
         dictionaryZoneList.append(difference_zone)
+
+        #Save output image
+        if difference_zone.get('Entire Image') != 100:
+            output_file = saveFile(difference_test, 'difference_name', i + 1)
+            outputPhoto.append(output_file)
+
 
         #test
         print(i)
@@ -375,6 +351,16 @@ def main():
 
     #create final dataFrame
     final_df = pd.concat([df_zone, df_outputFile, df_fileName_1, df_fileName_2], axis=1)
+
+    #Columns to check
+    columns_to_check = ['File_Name_1', 'File_Name_2']
+
+    #Example zones dictionary
+    #Check for 'MISSING' in specified columns and replace with 'N/A' in columns specified by zones.keys()
+    #Bug when implementing dtypes not string so ignore error?: https://github.com/pandas-dev/pandas/issues/55025
+    mask = final_df[columns_to_check].eq('MISSING').any(axis=1)
+    final_df.loc[mask, zones.keys()] = 'MISSING'
+    #Check for 'MISSING' in specified columns and replace with 'N/A'
 
     final_df.index = final_df.index + 1 #set index + 1 to match the excel spreadsheet w/ headers
     final_df.to_excel('Zone.xlsx', header=True, index=True)
